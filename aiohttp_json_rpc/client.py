@@ -23,13 +23,14 @@ class JsonRpcClient:
     _client_id = 0
 
     def __init__(self, logger=default_logger, url=None, cookies=None,
-                 loop=None):
+                 loop=None, headers=None):
 
         self._pending = {}
         self._msg_id = 0
         self._logger = logger
         self._handler = {}
         self._methods = {}
+        self._headers = headers
         self._autoconnect_url = URL(url) if url is not None else url
         self._autoconnect_cookies = cookies
         self._loop = loop or asyncio.get_event_loop()
@@ -117,7 +118,10 @@ class JsonRpcClient:
 
     async def connect_url(self, url, cookies=None, ssl=None):
         url = URL(url)
-        self._session = aiohttp.ClientSession(cookies=cookies, loop=self._loop)
+        if self._headers is None:
+            self._session = aiohttp.ClientSession(cookies=cookies, loop=self._loop)
+        else:
+            self._session = aiohttp.ClientSession(cookies=cookies, loop=self._loop, headers=self._headers)
 
         self._logger.debug('#%s: ws connect...', self._id)
         self._ws = None
